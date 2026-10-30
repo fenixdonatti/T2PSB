@@ -6,9 +6,9 @@ Biblioteca em C de gerenciamento de memória simples: aloca e libera blocos dent
 
 ## Integrantes
 
-Fênix Rodrigues Pedro
-Francisco Schardosim Ferr
-Davi Barcellos de Lucca
+- Fênix Rodrigues Pedro
+- Francisco Schardosim Ferr 
+- Davi Barcellos de Lucca 
 
 ## Progresso
 
