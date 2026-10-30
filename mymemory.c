@@ -9,7 +9,10 @@
       entre blocos consecutivos da lista.
  
   Uso de IA:
-    - Descrever aqui se vocês usarem ia em algo
+    - Foi utilizado o ClaudeCode para:
+        Estudar sobre o alocação de memória em C
+        Arrumar espaçamentos
+        Melhorar o nome das variáveis
 */
 
 

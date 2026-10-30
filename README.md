@@ -15,10 +15,10 @@ Davi Barcellos de Lucca
 - [X]  `mymemory.h` (estruturas e protótipos)
 - [X]  `mymemory_init`
 - [X]  `mymemory_alloc` (Best Fit, inserção ordenada na lista)
-- [ ]  `mymemory_free`
-- [ ]  `mymemory_display`
-- [ ]  `mymemory_stats`
-- [ ]  `mymemory_cleanup`
+- [X]  `mymemory_free`
+- [X]  `mymemory_display`
+- [X]  `mymemory_stats`
+- [X]  `mymemory_cleanup`
 - [X]  Vetor de 50 tamanhos em `main.c`
 - [ ]  Testes em `main.c` (alocar, liberar, variar ordem, display, stats)
 - [ ]  Compilar sem erros/avisos (`-Wall -Wextra`)
