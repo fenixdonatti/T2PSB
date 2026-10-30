@@ -18,101 +18,126 @@
 #include "mymemory.h"
 
 
-/*
-    Aloca o bloco de memória total e retorna um ponteiro para ele.
-*/
+size_t offset_of(mymemory_t *memory, void *ptr)
+{
+    char *pool_start = (char *)memory->pool;
+    char *address = (char *)ptr;
+    return (size_t)(address - pool_start);
+}
+
 mymemory_t *mymemory_init(size_t size)
 {
     if (size == 0) return NULL;
 
-    // Reserva o espaço na memória da lista encadeada fora do pool
-    mymemory_t *memory = malloc(sizeof(mymemory_t));
+    mymemory_t *memory;
+    memory = malloc(sizeof(mymemory_t));
     if (memory == NULL) return NULL;
 
-    // Cria o pool e guarda o endereço do primeiro byte
     memory->pool = malloc(size);
     if (memory->pool == NULL) {
-        free(memory);           // Se o pool falhar, libera a struct antes de sair
+        free(memory);
         return NULL;
     }
 
-    memory->total_size = size;      // Guarda o tamanho do pool
-    memory->head = NULL;            // Marca a lista vazia
-    return memory;                  // Devolve o ponteiro para a struct
+    memory->total_size = size;
+    memory->head = NULL;
+    return memory;
 }
 
-
-/*
-    Tenta alocar um bloco de memória de tamanho especificado.
-
-    Se for bem-sucedida, retorna um ponteiro para o ínicio do bloco.
-    Se for mal-sucedida, retorna NULL.
-*/
-void *mymemory_alloc(mymemory_t *memory, size_t size)
+void *mymemory_alloc(mymemory_t *memory, size_t node_size)
 {
-    if (memory == NULL || size == 0) return NULL;
+    allocation_t *previous = NULL;
+    allocation_t *current;
+    size_t gap_start = 0;
+    size_t gap_size;
 
-    char *pool_inicio = (char *)memory->pool;
-    char *pool_fim = pool_inicio + memory->total_size;
+    int found = 0;
+    allocation_t *best_previous = NULL;
+    size_t best_start = 0;
+    size_t best_size = 0;
 
-    char *melhor_inicio = NULL;                 // Ainda não achei a lacuna
-    size_t melhor_tamanho = 0;                  // É o tamanho da melhor lacuna até agora
-    allocation_t *melhor_anterior = NULL;       // É o nó depois do qual vai inserir
+    allocation_t *new_node;
 
-    /*
-        Essa lacuna vai do começo do pool até o primeiro bloco.
-        Se a lista está vazia (head == NULL), ela vai até o fim do pool.
-    */
-    char *fim = (memory->head != NULL)          // É onde essa lacuna termina
-        ? (char *)memory->head->start 
-        : pool_fim;
-    size_t tamanho = fim - pool_inicio;
-    if (tamanho >= size) {                      // Se cabe, ela já vira a melhor.
-        melhor_inicio = pool_inicio;
-        melhor_tamanho = tamanho;
+    if (memory == NULL || node_size == 0 || node_size > memory->total_size) return NULL;
+
+    /* 1: Olhar a lacuna que existe antes de cada bloco */
+    current = memory->head;
+    while (current != NULL) {
+        gap_size = offset_of(memory, current->start) - gap_start;
+
+        if (gap_size >= node_size) {
+            if (found == 0 || gap_size < best_size) {
+                found = 1;
+                best_previous = previous;
+                best_start = gap_start;
+                best_size = gap_size;
+            }
+        }
+
+        /* A próxima lacuna começa onde este bloco termina */
+        gap_start = offset_of(memory, current->start) + current->size;
+        previous = current;
+        current = current->next;
     }
 
-    /*
-        O for percorre a lista nó por nó.
+    /* 2: Olhar a lacuna final, entre o último bloco e o fim do pool
+        Aqui 'previous' é o último nó da lista */
 
-        O 'inicio' é onde o bloco 'a' termina, ou seja, onde a lacuna começa.
-        O 'proximo' é onde a lacuna termina.
-        A 'lacuna' é a diferença em bytes entre os dois.
-
-        O if é o Best Fit
-    */
-    for (allocation_t *a = memory->head; a != NULL; a = a->next) {      
-        char *inicio = (char *)a->start + a->size;
-        char *proximo = (a->next != NULL) 
-            ? (char *)a->next->start 
-            : pool_fim;
-        size_t lacuna = proximo - inicio;
-
-        if (lacuna >= size && (melhor_inicio == NULL || lacuna < melhor_tamanho)) {
-            melhor_inicio = inicio;
-            melhor_tamanho = lacuna;
-            melhor_anterior = a;
+    gap_size = memory->total_size - gap_start;
+    if (gap_size >= node_size) {
+        if (found == 0 || gap_size < best_size) {
+            found = 1;
+            best_previous = previous;
+            best_start = gap_start;
+            best_size = gap_size;
         }
     }
 
-    // Se nenhuma lacuna tinha espaço, retorna NULL
-    if (melhor_inicio == NULL) return NULL;
+    // Nenhuma lacuna é grande o suficiente
+    if (found == 0) return NULL;
 
-    /*
-        Criar e inserir o nó
-    */
-    allocation_t *novo = malloc(sizeof(allocation_t));
-    if (novo == NULL) return NULL;
-    novo->start = melhor_inicio;
-    novo->size = size;
+    /* 3: Criar o nó */
+    new_node = malloc(sizeof(allocation_t));
+    if (new_node == NULL) return NULL;
 
-    if (melhor_anterior == NULL) {
-        novo->next = memory->head;
-        memory->head = novo;
+    new_node->start = (char *)memory->pool + best_start;
+    new_node->size = node_size;
+
+    /* 4: Inserir na lista */
+    if (best_previous == NULL) {
+        new_node->next = memory->head;
+        memory->head = new_node;
     } else {
-        novo->next = melhor_anterior->next;
-        melhor_anterior->next = novo;
+        new_node->next = best_previous->next;
+        best_previous->next = new_node;
     }
 
-    return novo->start;
+    return new_node->start;
 }
+
+void mymemory_free(mymemory_t *memory, void *ptr)
+{
+    allocation_t *previous = NULL;
+    allocation_t *current;
+
+    if (memory == NULL || ptr == NULL) return;
+
+    /* Procura o nó cujo 'start' é igual ao ptr */
+    current = memory->head;
+    while (current != NULL && current->start != ptr) {
+        previous = current;
+        current = current->next;
+    }
+
+    if (current == NULL) return;
+
+    /* Tira o nó da lista */
+    if (previous == NULL) {
+        memory->head = current->next;       // Era o primeiro
+    } else {
+        previous->next = current->next;     // Estava no meio ou no fim
+    }
+
+    free(current);
+}
+
