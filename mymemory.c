@@ -162,3 +162,69 @@ void mymemory_display(mymemory_t *memory)
         current = current->next;
     }
 }
+
+void mymemory_stats(mymemory_t *memory)
+{
+    allocation_t *current;
+    size_t num_allocation = 0;
+    size_t total_allocated = 0;
+    size_t biggest_free = 0;
+    size_t fragments = 0;
+    size_t gap_start = 0;
+    size_t gap_size;
+ 
+    if (memory == NULL) return;
+ 
+    /* Mesma ideia do alloc: a lacuna antes de cada bloco */
+    current = memory->head;
+    while (current != NULL) {
+        gap_size = offset_of(memory, current->start) - gap_start;
+ 
+        if (gap_size > 0) {
+            fragments++;
+            if (gap_size > biggest_free) {
+                biggest_free = gap_size;
+            }
+        }
+ 
+        num_allocation++;
+        total_allocated = total_allocated + current->size;
+        gap_start = offset_of(memory, current->start) + current->size;
+        current = current->next;
+    }
+ 
+    /* Lacuna final, entre o ultimo bloco e o fim do pool */
+    gap_size = memory->total_size - gap_start;
+    if (gap_size > 0) {
+        fragments++;
+        if (gap_size > biggest_free) {
+            biggest_free = gap_size;
+        }
+    }
+ 
+    printf("  Estatisticas:\n");
+    printf("    Numero de alocacoes:     %zu\n", num_allocation);
+    printf("    Memoria alocada:         %zu bytes\n", total_allocated);
+    printf("    Memoria livre:           %zu bytes\n", memory->total_size - total_allocated);
+    printf("    Maior bloco livre:       %zu bytes\n", biggest_free);
+    printf("    Fragmentos livres:       %zu\n", fragments);
+}
+
+void mymemory_cleanup(mymemory_t *memory)
+{
+    allocation_t *current;
+    allocation_t *next;
+ 
+    if (memory == NULL) return;
+ 
+    /* Libera cada no, guardando o proximo ANTES do free */
+    current = memory->head;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+ 
+    free(memory->pool);     /* libera o pool */
+    free(memory);           /* libera a estrutura de controle */
+}
