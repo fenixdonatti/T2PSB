@@ -141,3 +141,24 @@ void mymemory_free(mymemory_t *memory, void *ptr)
     free(current);
 }
 
+void mymemory_display(mymemory_t *memory)
+{
+    allocation_t *current;
+    int i = 0;
+
+    if (memory == NULL) return;
+
+    printf("Alocações atuais (pool de %zu bytes em %p): \n", memory->total_size, memory->pool);
+    if (memory->head == NULL) {
+        printf("Nenhuma alocação\n");
+    }
+
+    current = memory->head;
+    while(current != NULL) {
+        printf("Inicio=%d    endereco=%p   offset=%zu   tamanho=%zu\n", 
+            i, (void *)current->start, offset_of(memory, current->start), current->size
+        );
+        i++;
+        current = current->next;
+    }
+}
