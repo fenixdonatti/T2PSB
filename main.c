@@ -86,7 +86,7 @@ void teste_cleanup(){
 	printf("\n");
 	 for (int i = 0; i < NUM_BLOCOS; i += 2) {
         
-	printf("%2d LIBERADO %4zu bytes  %p\n", i, TAMANHOS[i], blocos[i]);
+	printf("%2d - %4zu bytes -  %p\n", i, TAMANHOS[i], blocos[i]);
 		mymemory_free(memory, blocos[i]);
         blocos[i] = NULL;
     }
