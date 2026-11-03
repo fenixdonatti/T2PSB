@@ -7,8 +7,8 @@ Biblioteca em C de gerenciamento de memória simples: aloca e libera blocos dent
 ## Integrantes
 
 - Fênix Rodrigues Pedro
-- Francisco Schardosim Ferr 
-- Davi Barcellos de Lucca 
+- Francisco Schardosim Ferr
+- Davi Barcellos de Lucca
 
 ## Progresso
 
@@ -20,10 +20,10 @@ Biblioteca em C de gerenciamento de memória simples: aloca e libera blocos dent
 - [X]  `mymemory_stats`
 - [X]  `mymemory_cleanup`
 - [X]  Vetor de 50 tamanhos em `main.c`
-- [ ]  Testes em `main.c` (alocar, liberar, variar ordem, display, stats)
-- [ ]  Compilar sem erros/avisos (`-Wall -Wextra`)
-- [ ]  Verificar vazamentos com `valgrind`
-- [ ]  Completar seção "Uso de IA"
+- [X]  Testes em `main.c` (alocar, liberar, display, stats)
+- [X]  Compilar sem erros/avisos (`-Wall -Wextra`)
+- [X]  Verificar vazamentos com `valgrind`
+- [X]  Completar seção "Uso de IA"
 
 ## Arquivos
 
@@ -91,22 +91,15 @@ Estratégia adotada: **Best Fit**
 `main.c` inclui `mymemory.c` diretamente, então compile só `main.c`:
 
 ```sh
-gcc -Wall -Wextra -o t2 main.c
-./t2
+gcc -Wall -Wextra main.c -o main && ./main
 ```
 
-O código deve compilar sem erros ou avisos. Para checar vazamentos:
+* [X]  O código deve compilar sem erros ou avisos. Para checar vazamentos:
 
 ```sh
-valgrind --leak-check=full ./t2
+valgrind --leak-check=full ./main
 ```
 
 ## Testes
 
-`main.c` aloca ~50 blocos de tamanhos variados (5 a 2048 bytes), em ordens diferentes, e verifica alocação, liberação, fragmentação e estatísticas.
-
-## Uso de IA
-
-- Claude gerou os valores do vetor de tamanhos em `main.c`.
-- Claude gerou este README a partir do enunciado.
-- _Descrever aqui qualquer outro uso de IA ou ajuda de colegas._
+`main.c` aloca ~50 blocos de tamanhos variados (5 a 2048 bytes), em ordens diferentes.

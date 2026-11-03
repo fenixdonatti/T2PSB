@@ -21,7 +21,7 @@
 #include "mymemory.h"
 
 
-size_t offset_of(mymemory_t *memory, void *ptr)
+static size_t offset_of(mymemory_t *memory, void *ptr)
 {
     char *pool_start = (char *)memory->pool;
     char *address = (char *)ptr;
@@ -147,23 +147,23 @@ void mymemory_free(mymemory_t *memory, void *ptr)
 void mymemory_display(mymemory_t *memory)
 {
     allocation_t *current;
-    int i = 0;
 
     if (memory == NULL) return;
 
-    printf("Alocações atuais (pool de %zu bytes em %p): \n", memory->total_size, memory->pool);
-    if (memory->head == NULL) {
-        printf("Nenhuma alocação\n");
-    }
+    printf("Display do pool de %zu bytes: \n", memory->total_size);
+    printf("-----------------------------------------------\n");
+    printf("|     Inicio     |      Fim       |  Tamanho  |\n");
 
+    /* Sem coluna de estado, so os blocos alocados sao listados */
     current = memory->head;
-    while(current != NULL) {
-        printf("Inicio=%d    endereco=%p   offset=%zu   tamanho=%zu\n", 
-            i, (void *)current->start, offset_of(memory, current->start), current->size
-        );
-        i++;
+    while (current != NULL) {
+        printf("| %14p | %14p | %9zu |\n",
+            current->start,
+            (void *)((char *)current->start + current->size - 1),
+            current->size);
         current = current->next;
     }
+    printf("-----------------------------------------------\n");
 }
 
 void mymemory_stats(mymemory_t *memory)
@@ -205,12 +205,14 @@ void mymemory_stats(mymemory_t *memory)
         }
     }
  
-    printf("  Estatisticas:\n");
-    printf("    Numero de alocacoes:     %zu\n", num_allocation);
-    printf("    Memoria alocada:         %zu bytes\n", total_allocated);
-    printf("    Memoria livre:           %zu bytes\n", memory->total_size - total_allocated);
-    printf("    Maior bloco livre:       %zu bytes\n", biggest_free);
-    printf("    Fragmentos livres:       %zu\n", fragments);
+    printf("Estatisticas:\n");
+    printf("------------------------------------------\n");
+    printf("| Numero de alocacoes: %zu                 |\n", num_allocation);
+    printf("| Memoria alocada:     %zu bytes           |\n", total_allocated);
+    printf("| Memoria livre:       %zu bytes           |\n", memory->total_size - total_allocated);
+    printf("| Maior bloco livre:   %zu bytes           |\n", biggest_free);
+    printf("| Fragmentos livres:   %zu                 |\n", fragments);
+    printf("------------------------------------------\n");
 }
 
 void mymemory_cleanup(mymemory_t *memory)
@@ -220,7 +222,6 @@ void mymemory_cleanup(mymemory_t *memory)
  
     if (memory == NULL) return;
  
-    /* Libera cada no, guardando o proximo ANTES do free */
     current = memory->head;
     while (current != NULL) {
         next = current->next;
