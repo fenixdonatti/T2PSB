@@ -14,6 +14,7 @@
         Arrumar espaçamentos
         Melhorar o nome das variáveis
         Auxilio na função 'mymemory_stats' e 'mymemory_display'
+        Criação da função 'offset_of'
 */
 
 
